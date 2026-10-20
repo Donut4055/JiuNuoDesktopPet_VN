@@ -35,20 +35,20 @@ public partial class MainWindow
         var countdown = (int)Math.Ceiling(Math.Max(0, attempt ?? 0));
         var text = reason switch
         {
-            "disabled" => "自主捣蛋已关闭",
-            "session_locked" => "已暂停（锁屏）",
-            "quiet" => "已暂停（安静模式）",
-            "sleeping" => "已暂停（睡觉）",
-            "performing" => _manualRestoreInProgress ? "归还窗口中" : "捣蛋中",
-            "cooldown" => $"冷却中 · {cooldown} 秒",
-            "dragging" => "蓄力中 · 等你松手",
-            "hat_recovery" => "等她戴好帽子",
-            "assets_unavailable" => "动作素材不可用（见日志）",
-            "hat_occupied_full" => "已满 · 等帽子腾空，小捣蛋照常",
-            "no_eligible_window" => $"等待合适窗口 · {countdown} 秒后重试",
-            "enclosed" => "蓄力中 · 等她离开窗口内部",
-            "pet_busy" => "等当前动作结束",
-            _ => $"蓄力中 · {Math.Floor(_mischief.Value):0}/100" + (HasHeldPrank ? " · 帽子已占用" : ""),
+            "disabled" => LocalizationManager.Get("Mischief_Disabled"),
+            "session_locked" => LocalizationManager.Get("Mischief_SessionLocked"),
+            "quiet" => LocalizationManager.Get("Mischief_Quiet"),
+            "sleeping" => LocalizationManager.Get("Mischief_Sleeping"),
+            "performing" => _manualRestoreInProgress ? LocalizationManager.Get("Mischief_Restoring") : LocalizationManager.Get("Mischief_Performing"),
+            "cooldown" => LocalizationManager.Get("Mischief_Cooldown", cooldown),
+            "dragging" => LocalizationManager.Get("Mischief_Dragging"),
+            "hat_recovery" => LocalizationManager.Get("Mischief_HatRecovery"),
+            "assets_unavailable" => LocalizationManager.Get("Mischief_AssetsUnavailable"),
+            "hat_occupied_full" => LocalizationManager.Get("Mischief_HatOccupiedFull"),
+            "no_eligible_window" => LocalizationManager.Get("Mischief_NoEligibleWindow", countdown),
+            "enclosed" => LocalizationManager.Get("Mischief_Enclosed"),
+            "pet_busy" => LocalizationManager.Get("Mischief_PetBusy"),
+            _ => LocalizationManager.Get("Mischief_ChargingProgress", (int)Math.Floor(_mischief.Value)) + (HasHeldPrank ? LocalizationManager.Get("Mischief_HatOccupied") : ""),
         };
         _trayIcon.SetMischiefStatus(text);
         if (reason == _lastMischiefStatusReason && now < _nextMischiefStatusLog) return;

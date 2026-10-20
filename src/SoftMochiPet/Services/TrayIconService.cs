@@ -26,12 +26,20 @@ public sealed class TrayIconService : IDisposable
     private readonly Forms.ToolStripMenuItem _returnWindows;
     private readonly Forms.TrackBar _sizeSlider;
     private readonly Forms.Label _sizeLabel;
+    private readonly Forms.ToolStripMenuItem _characterMenu;
+    private readonly Forms.ToolStripMenuItem _bringHomeItem;
+    private readonly Forms.ToolStripMenuItem _exitItem;
+    private readonly Forms.ToolStripMenuItem _langMenu;
+    private readonly Forms.ToolStripMenuItem _langViItem;
+    private readonly Forms.ToolStripMenuItem _langZhItem;
     private readonly Dictionary<string, Forms.ToolStripMenuItem> _characterItems = new(StringComparer.Ordinal);
+    private readonly Dictionary<string, Forms.ToolStripMenuItem> _pairItems = new(StringComparer.Ordinal);
     private readonly BehaviorControlMenu? _behaviorControlMenu;
 
     private PetCharacterProfile _character;
     private bool _coexisting;
     private Icon? _customIcon;
+    private string _currentMischiefRawStatus = "蓄力中";
 
     private bool _suppressSettingEvents;
     private bool _disposed;
@@ -52,26 +60,26 @@ public sealed class TrayIconService : IDisposable
         _character = character ?? PetCharacterProfile.Get("nuonuo");
         _customIcon = LoadCharacterIcon(_character);
 
-        _mute = new Forms.ToolStripMenuItem("禁音")
+        _mute = new Forms.ToolStripMenuItem(LocalizationManager.Get("Tray_Mute"))
         {
             Checked = !soundEnabled,
             CheckOnClick = true,
         };
         _mute.CheckedChanged += (_, _) => SoundEnabledChanged?.Invoke(!_mute.Checked);
 
-        _startWithWindows = CreateToggle("开机自启", startWithWindows);
-        _fastingMode = CreateToggle("禁食模式（永不饥饿）", fastingMode);
-        _infiniteMode = CreateToggle("无限模式（隐藏双方进度条）", infiniteMode);
-        _coexistenceMode = CreateToggle("双宠共存", coexistenceMode);
-        _speechBubbles = CreateToggle("显示头顶对话气泡", showSpeechBubbles);
+        _startWithWindows = CreateToggle(LocalizationManager.Get("Tray_StartWithWindows"), startWithWindows);
+        _fastingMode = CreateToggle(LocalizationManager.Get("Tray_FastingMode"), fastingMode);
+        _infiniteMode = CreateToggle(LocalizationManager.Get("Tray_InfiniteMode"), infiniteMode);
+        _coexistenceMode = CreateToggle(LocalizationManager.Get("Tray_CoexistenceMode"), coexistenceMode);
+        _speechBubbles = CreateToggle(LocalizationManager.Get("Tray_SpeechBubbles"), showSpeechBubbles);
         _coexisting = coexistenceMode;
-        _quietMode = CreateToggle("安静模式（只站立或睡觉）", quietMode);
-        _allowMischief = CreateToggle("允许自主捣蛋", allowMischief);
+        _quietMode = CreateToggle(LocalizationManager.Get("Tray_QuietMode"), quietMode);
+        _allowMischief = CreateToggle(LocalizationManager.Get("Tray_AllowMischief"), allowMischief);
         _mischiefStatus = new Forms.ToolStripMenuItem { Enabled = false };
         SetMischiefStatus(allowMischief ? "蓄力中" : "已关闭");
-        _prankOnce = new Forms.ToolStripMenuItem("捣蛋一下", null, (_, _) => MischiefRequested?.Invoke());
-        _tease = new Forms.ToolStripMenuItem("逗逗她", null, (_, _) => TeaseRequested?.Invoke());
-        _returnWindows = new Forms.ToolStripMenuItem("把窗口还回来", null, (_, _) => ReturnWindowsRequested?.Invoke())
+        _prankOnce = new Forms.ToolStripMenuItem(LocalizationManager.Get("Tray_PrankOnce"), null, (_, _) => MischiefRequested?.Invoke());
+        _tease = new Forms.ToolStripMenuItem(LocalizationManager.Get("Tray_Tease"), null, (_, _) => TeaseRequested?.Invoke());
+        _returnWindows = new Forms.ToolStripMenuItem(LocalizationManager.Get("Tray_ReturnWindows"), null, (_, _) => ReturnWindowsRequested?.Invoke())
         {
             Enabled = false,
         };
@@ -157,17 +165,46 @@ public sealed class TrayIconService : IDisposable
             if (!_suppressSettingEvents) SpeechBubblesChanged?.Invoke(_speechBubbles.Checked);
         };
 
-        var characterMenu = new Forms.ToolStripMenuItem("桌宠角色");
+        _characterMenu = new Forms.ToolStripMenuItem(LocalizationManager.Get("Tray_CharacterSelect"));
         foreach (var profile in PetCharacterProfile.All)
         {
-            var item = new Forms.ToolStripMenuItem(profile.DisplayName)
+            var item = new Forms.ToolStripMenuItem(LocalizationManager.GetCharacterName(profile.Id, profile.DisplayName))
             {
                 Checked = profile.Id == _character.Id,
             };
             item.Click += (_, _) => CharacterChanged?.Invoke(profile.Id);
             _characterItems.Add(profile.Id, item);
-            characterMenu.DropDownItems.Add(item);
+            _characterMenu.DropDownItems.Add(item);
         }
+
+        _bringHomeItem = new Forms.ToolStripMenuItem(LocalizationManager.Get("Tray_BringHome"), null, (_, _) => BringHomeRequested?.Invoke());
+        _exitItem = new Forms.ToolStripMenuItem(LocalizationManager.Get("Tray_Exit"), null, (_, _) => ExitRequested?.Invoke());
+
+        _langMenu = new Forms.ToolStripMenuItem(LocalizationManager.Get("Tray_Language"));
+        _langViItem = new Forms.ToolStripMenuItem(LocalizationManager.Get("Tray_LanguageVi"))
+        {
+            Checked = LocalizationManager.IsVietnamese,
+        };
+        _langZhItem = new Forms.ToolStripMenuItem(LocalizationManager.Get("Tray_LanguageZh"))
+        {
+            Checked = !LocalizationManager.IsVietnamese,
+        };
+        _langViItem.Click += (_, _) =>
+        {
+            if (LocalizationManager.IsVietnamese) return;
+            LocalizationManager.SetLanguage(LocalizationManager.Vietnamese);
+            RefreshLanguage();
+            LanguageRequested?.Invoke(LocalizationManager.Vietnamese);
+        };
+        _langZhItem.Click += (_, _) =>
+        {
+            if (!LocalizationManager.IsVietnamese) return;
+            LocalizationManager.SetLanguage(LocalizationManager.Chinese);
+            RefreshLanguage();
+            LanguageRequested?.Invoke(LocalizationManager.Chinese);
+        };
+        _langMenu.DropDownItems.Add(_langViItem);
+        _langMenu.DropDownItems.Add(_langZhItem);
 
         _menu = new MenuInteractionStrip();
         _menu.InteractionOpenChanged += open => MenuOpenChanged?.Invoke(open);
@@ -184,20 +221,26 @@ public sealed class TrayIconService : IDisposable
             _menu.Items.Add(new Forms.ToolStripSeparator());
             _startWithWindows.Available = false;
         }
-        _menu.Items.Add("让她回家", null, (_, _) => BringHomeRequested?.Invoke());
-        _menu.Items.Add(characterMenu);
+        _menu.Items.Add(_bringHomeItem);
+        _menu.Items.Add(_characterMenu);
         if (!behaviorControl) _menu.Items.Add(_coexistenceMode);
         if (!behaviorControl)
         {
-            _pairMenu = new Forms.ToolStripMenuItem("双人互动演示");
-            _pairMenu.DropDownItems.Add("菲比揪糯糯的脸", null, (_, _) => PairInteractionRequested?.Invoke("cheek"));
-            _pairMenu.DropDownItems.Add("靠在一起睡觉", null, (_, _) => PairInteractionRequested?.Invoke("sleep"));
-            _pairMenu.DropDownItems.Add("从帽子里掏零食投喂", null, (_, _) => PairInteractionRequested?.Invoke("feed"));
-            _pairMenu.DropDownItems.Add("小跟屁虫", null, (_, _) => PairInteractionRequested?.Invoke("follow"));
-            _pairMenu.DropDownItems.Add("路过蹭一下", null, (_, _) => PairInteractionRequested?.Invoke("nuzzle"));
-            _pairMenu.DropDownItems.Add("一起玩小球", null, (_, _) => PairInteractionRequested?.Invoke("ball"));
-            _pairMenu.DropDownItems.Add("一起看热闹", null, (_, _) => PairInteractionRequested?.Invoke("watch"));
-            _pairDialogueItem = new Forms.ToolStripMenuItem("让她们聊两句", null,
+            _pairMenu = new Forms.ToolStripMenuItem(LocalizationManager.Get("Tray_PairMenu"));
+            void AddPairItem(string key, string text, Action action)
+            {
+                var item = new Forms.ToolStripMenuItem(text, null, (_, _) => action());
+                _pairItems.Add(key, item);
+                _pairMenu.DropDownItems.Add(item);
+            }
+            AddPairItem("cheek", LocalizationManager.Get("Tray_PairCheek"), () => PairInteractionRequested?.Invoke("cheek"));
+            AddPairItem("sleep", LocalizationManager.Get("Tray_PairSleep"), () => PairInteractionRequested?.Invoke("sleep"));
+            AddPairItem("feed", LocalizationManager.Get("Tray_PairFeed"), () => PairInteractionRequested?.Invoke("feed"));
+            AddPairItem("follow", LocalizationManager.Get("Tray_PairFollow"), () => PairInteractionRequested?.Invoke("follow"));
+            AddPairItem("nuzzle", LocalizationManager.Get("Tray_PairNuzzle"), () => PairInteractionRequested?.Invoke("nuzzle"));
+            AddPairItem("ball", LocalizationManager.Get("Tray_PairBall"), () => PairInteractionRequested?.Invoke("ball"));
+            AddPairItem("watch", LocalizationManager.Get("Tray_PairWatch"), () => PairInteractionRequested?.Invoke("watch"));
+            _pairDialogueItem = new Forms.ToolStripMenuItem(LocalizationManager.Get("Tray_PairDialogue"), null,
                 (_, _) => PairDialogueRequested?.Invoke());
             _pairMenu.DropDownItems.Add(_pairDialogueItem);
             _menu.Items.Add(_pairMenu);
@@ -216,7 +259,8 @@ public sealed class TrayIconService : IDisposable
         _menu.Items.Add(_quietMode);
         if (!behaviorControl) _menu.Items.Add(_speechBubbles);
         _menu.Items.Add(_mute);
-        _menu.Items.Add("退出桌宠", null, (_, _) => ExitRequested?.Invoke());
+        _menu.Items.Add(_langMenu);
+        _menu.Items.Add(_exitItem);
 
         _notifyIcon = new Forms.NotifyIcon
         {
@@ -303,6 +347,7 @@ public sealed class TrayIconService : IDisposable
     public event Action<BehaviorControlAction>? BehaviorControlRequested;
     public event Action? BehaviorControlStopRequested;
     public event Action<bool>? BehaviorAutonomyChanged;
+    public event Action<string>? LanguageRequested;
 
     public bool IsMenuOpen => _menu.IsInteractionOpen;
 
@@ -313,11 +358,11 @@ public sealed class TrayIconService : IDisposable
     public void ConfigureFeatureTest()
     {
         foreach (Forms.ToolStripItem item in _menu.Items)
-            item.Enabled = ReferenceEquals(item, _mute) || item.Text == "退出桌宠";
-        _featureTestStatus = new Forms.ToolStripMenuItem("准备专属功能测试…") { Enabled = false };
-        _featureTestStop = new Forms.ToolStripMenuItem("停止专属功能测试", null,
+            item.Enabled = ReferenceEquals(item, _mute) || ReferenceEquals(item, _exitItem) || item.Text == "退出桌宠";
+        _featureTestStatus = new Forms.ToolStripMenuItem(LocalizationManager.Get("Tray_FeatureTestStatus")) { Enabled = false };
+        _featureTestStop = new Forms.ToolStripMenuItem(LocalizationManager.Get("Tray_FeatureTestStop"), null,
             (_, _) => FeatureTestStopRequested?.Invoke());
-        _featureTestRetry = new Forms.ToolStripMenuItem("重试本项", null,
+        _featureTestRetry = new Forms.ToolStripMenuItem(LocalizationManager.Get("Tray_FeatureTestRetry"), null,
             (_, _) => FeatureTestRetryRequested?.Invoke()) { Enabled = false };
         _menu.Items.Insert(0, _featureTestStatus);
         _menu.Items.Insert(1, _featureTestStop);
@@ -411,9 +456,66 @@ public sealed class TrayIconService : IDisposable
     public void SetMischiefStatus(string status)
     {
         if (_disposed) return;
-        var text = $"捣蛋状态：{status}";
+        _currentMischiefRawStatus = status;
+        var localizedStatus = status switch
+        {
+            "蓄力中" => LocalizationManager.Get("Tray_MischiefCharging"),
+            "已关闭" => LocalizationManager.Get("Tray_MischiefClosed"),
+            _ => status,
+        };
+        var text = LocalizationManager.Get("Tray_MischiefStatus", localizedStatus);
         if (!string.Equals(_mischiefStatus.Text, text, StringComparison.Ordinal))
             _mischiefStatus.Text = text;
+    }
+
+    public void RefreshLanguage()
+    {
+        _mute.Text = LocalizationManager.Get("Tray_Mute");
+        _startWithWindows.Text = LocalizationManager.Get("Tray_StartWithWindows");
+        _fastingMode.Text = LocalizationManager.Get("Tray_FastingMode");
+        _infiniteMode.Text = LocalizationManager.Get("Tray_InfiniteMode");
+        _coexistenceMode.Text = LocalizationManager.Get("Tray_CoexistenceMode");
+        _speechBubbles.Text = LocalizationManager.Get("Tray_SpeechBubbles");
+        _quietMode.Text = LocalizationManager.Get("Tray_QuietMode");
+        _allowMischief.Text = LocalizationManager.Get("Tray_AllowMischief");
+        _prankOnce.Text = LocalizationManager.Get("Tray_PrankOnce");
+        _tease.Text = LocalizationManager.Get("Tray_Tease");
+        _returnWindows.Text = LocalizationManager.Get("Tray_ReturnWindows");
+        _characterMenu.Text = LocalizationManager.Get("Tray_CharacterSelect");
+        _bringHomeItem.Text = LocalizationManager.Get("Tray_BringHome");
+        _exitItem.Text = LocalizationManager.Get("Tray_Exit");
+        _langMenu.Text = LocalizationManager.Get("Tray_Language");
+        _langViItem.Text = LocalizationManager.Get("Tray_LanguageVi");
+        _langZhItem.Text = LocalizationManager.Get("Tray_LanguageZh");
+        _langViItem.Checked = LocalizationManager.IsVietnamese;
+        _langZhItem.Checked = !LocalizationManager.IsVietnamese;
+
+        if (_pairMenu is not null)
+        {
+            _pairMenu.Text = LocalizationManager.Get("Tray_PairMenu");
+            if (_pairItems.TryGetValue("cheek", out var cheek)) cheek.Text = LocalizationManager.Get("Tray_PairCheek");
+            if (_pairItems.TryGetValue("sleep", out var sleep)) sleep.Text = LocalizationManager.Get("Tray_PairSleep");
+            if (_pairItems.TryGetValue("feed", out var feed)) feed.Text = LocalizationManager.Get("Tray_PairFeed");
+            if (_pairItems.TryGetValue("follow", out var follow)) follow.Text = LocalizationManager.Get("Tray_PairFollow");
+            if (_pairItems.TryGetValue("nuzzle", out var nuzzle)) nuzzle.Text = LocalizationManager.Get("Tray_PairNuzzle");
+            if (_pairItems.TryGetValue("ball", out var ball)) ball.Text = LocalizationManager.Get("Tray_PairBall");
+            if (_pairItems.TryGetValue("watch", out var watch)) watch.Text = LocalizationManager.Get("Tray_PairWatch");
+            if (_pairDialogueItem is not null) _pairDialogueItem.Text = LocalizationManager.Get("Tray_PairDialogue");
+        }
+
+        foreach (var profile in PetCharacterProfile.All)
+        {
+            if (_characterItems.TryGetValue(profile.Id, out var item))
+            {
+                item.Text = LocalizationManager.GetCharacterName(profile.Id, profile.DisplayName);
+            }
+        }
+
+        SetMischiefStatus(_currentMischiefRawStatus);
+        UpdateSizeLabel();
+        UpdateCharacterMenu();
+        _behaviorControlMenu?.RefreshLanguage();
+        _notifyIcon.Text = TrayTitle;
     }
 
     public void SetBehaviorControlStatus(string status) => _behaviorControlMenu?.SetStatus(status);
@@ -430,8 +532,8 @@ public sealed class TrayIconService : IDisposable
         if (_pairDialogueItem is not null) _pairDialogueItem.Enabled = _coexisting && _speechBubbles.Checked && !_quietMode.Checked;
         _fastingMode.Visible = _coexisting || _character.SupportsFood;
         _fastingMode.ToolTipText = _coexisting
-            ? "糯糯不再饥饿，同时隐藏双方进度条；菲比的捣蛋蓄力不变。"
-            : "糯糯不再饥饿，并隐藏饥饿条。";
+            ? LocalizationManager.Get("Tooltip_FastingCoexist")
+            : LocalizationManager.Get("Tooltip_FastingSolo");
         _allowMischief.Visible = _coexisting || _character.UsesMischief;
         _mischiefStatus.Visible = _coexisting || _character.UsesMischief;
         _prankOnce.Visible = (_coexisting || _character.UsesMischief) && _behaviorControlMenu is null;
@@ -440,13 +542,14 @@ public sealed class TrayIconService : IDisposable
         _behaviorControlMenu?.SetCharacter(_character);
     }
 
-    private string TrayTitle => _coexisting ? "啾糯桌宠 · 双宠共存"
-        : _behaviorControlMenu is null ? $"啾糯桌宠 · {_character.DisplayName}"
-        : $"啾糯桌宠 · 行为控制版 · {_character.DisplayName}";
+    private string TrayTitle => _coexisting ? LocalizationManager.Get("Tray_TitleCoexist")
+        : _behaviorControlMenu is null ? $"{LocalizationManager.Get("Tray_TitleBase")} · {LocalizationManager.GetCharacterName(_character.Id, _character.DisplayName)}"
+        : $"{LocalizationManager.Get("Tray_TitleBehavior")} · {LocalizationManager.GetCharacterName(_character.Id, _character.DisplayName)}";
 
     private void UpdateSizeLabel()
     {
-        _sizeLabel.Text = $"{(_coexisting ? "两人" : _character.DisplayName)}大小  {_sizeSlider.Value}%";
+        var targetName = _coexisting ? LocalizationManager.Get("Tray_SizeBoth") : LocalizationManager.GetCharacterName(_character.Id, _character.DisplayName);
+        _sizeLabel.Text = LocalizationManager.Get("Tray_SizeFormat", targetName, _sizeSlider.Value);
     }
 
     public void ShowMenu()
@@ -471,8 +574,8 @@ public sealed class TrayIconService : IDisposable
         private readonly Dictionary<string, Forms.ToolStripMenuItem> _groups = new(StringComparer.Ordinal);
         private PetCharacterProfile _character;
 
-        public Forms.ToolStripMenuItem Status { get; } = new("行为控制版：请选择行为") { Enabled = false };
-        public Forms.ToolStripMenuItem Actions { get; } = new("直接触发行为");
+        public Forms.ToolStripMenuItem Status { get; } = new(LocalizationManager.Get("Behavior_StatusDefault")) { Enabled = false };
+        public Forms.ToolStripMenuItem Actions { get; } = new(LocalizationManager.Get("Behavior_Actions"));
         public Forms.ToolStripMenuItem Stop { get; }
         public Forms.ToolStripMenuItem Autonomy { get; }
 
@@ -480,22 +583,22 @@ public sealed class TrayIconService : IDisposable
             Action stop, Action<bool> autonomyChanged)
         {
             _character = character;
-            Stop = new Forms.ToolStripMenuItem("停止当前行为", null, (_, _) => stop());
-            Autonomy = CreateToggle("自动日常活动（行为控制版）", false);
-            Autonomy.ToolTipText = "开启后允许自行散步、休息等日常活动；此选项仅用于当前行为控制会话。";
+            Stop = new Forms.ToolStripMenuItem(LocalizationManager.Get("Behavior_Stop"), null, (_, _) => stop());
+            Autonomy = CreateToggle(LocalizationManager.Get("Behavior_Autonomy"), false);
+            Autonomy.ToolTipText = LocalizationManager.Get("Behavior_AutonomyTooltip");
             Autonomy.CheckedChanged += (_, _) => autonomyChanged(Autonomy.Checked);
             foreach (var definition in BehaviorControlCatalog.All.Where(item => item.Action != BehaviorControlAction.Stop))
             {
                 if (!_groups.TryGetValue(definition.Group, out var group))
                 {
-                    group = new Forms.ToolStripMenuItem(definition.Group);
+                    group = new Forms.ToolStripMenuItem(definition.LocalizedGroup);
                     _groups.Add(definition.Group, group);
                     Actions.DropDownItems.Add(group);
                 }
-                var item = new Forms.ToolStripMenuItem(definition.Title)
+                var item = new Forms.ToolStripMenuItem(definition.LocalizedTitle)
                 {
                     Tag = definition.Action,
-                    ToolTipText = definition.Description,
+                    ToolTipText = definition.LocalizedDescription,
                     Enabled = false,
                 };
                 item.Click += (_, _) => request(definition.Action);
@@ -505,9 +608,32 @@ public sealed class TrayIconService : IDisposable
             SetCharacter(character);
         }
 
+        public void RefreshLanguage()
+        {
+            Status.Text = LocalizationManager.Get("Behavior_StatusDefault");
+            Actions.Text = LocalizationManager.Get("Behavior_Actions");
+            Stop.Text = LocalizationManager.Get("Behavior_Stop");
+            Autonomy.Text = LocalizationManager.Get("Behavior_Autonomy");
+            Autonomy.ToolTipText = LocalizationManager.Get("Behavior_AutonomyTooltip");
+            foreach (var (action, item) in _items)
+            {
+                var def = BehaviorControlCatalog.Get(action);
+                item.Text = def.LocalizedTitle;
+                item.ToolTipText = def.LocalizedDescription;
+            }
+            foreach (var (groupName, groupItem) in _groups)
+            {
+                var sample = BehaviorControlCatalog.All.FirstOrDefault(i => i.Group == groupName);
+                if (sample is not null)
+                {
+                    groupItem.Text = sample.LocalizedGroup;
+                }
+            }
+        }
+
         public void SetStatus(string status)
         {
-            var text = $"行为控制版：{status}";
+            var text = LocalizationManager.Get("Behavior_StatusFormat", status);
             if (!string.Equals(Status.Text, text, StringComparison.Ordinal)) Status.Text = text;
         }
 

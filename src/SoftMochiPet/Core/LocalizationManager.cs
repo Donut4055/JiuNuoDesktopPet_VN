@@ -1,0 +1,201 @@
+namespace SoftMochiPet.Core;
+
+public static class LocalizationManager
+{
+    public const string Vietnamese = "vi-VN";
+    public const string Chinese = "zh-CN";
+
+    private static string _currentLanguage = Chinese;
+
+    public static event Action? LanguageChanged;
+
+    public static string CurrentLanguage
+    {
+        get => _currentLanguage;
+        set => SetLanguage(value);
+    }
+
+    public static bool IsVietnamese => string.Equals(_currentLanguage, Vietnamese, StringComparison.OrdinalIgnoreCase);
+
+    public static void SetLanguage(string? language)
+    {
+        var target = string.Equals(language, Chinese, StringComparison.OrdinalIgnoreCase) ? Chinese : Vietnamese;
+        if (string.Equals(_currentLanguage, target, StringComparison.Ordinal))
+        {
+            return;
+        }
+
+        _currentLanguage = target;
+        LanguageChanged?.Invoke();
+    }
+
+    public static string Get(string key, params object[] args)
+    {
+        var dict = IsVietnamese ? VietnameseStrings : ChineseStrings;
+        if (!dict.TryGetValue(key, out var template) && !ChineseStrings.TryGetValue(key, out template))
+        {
+            template = key;
+        }
+
+        return args.Length == 0 ? template : string.Format(template, args);
+    }
+
+    public static string GetCharacterName(string id, string fallback)
+    {
+        if (IsVietnamese)
+        {
+            return id.ToLowerInvariant() switch
+            {
+                "nuonuo" => "Nhu Nhu",
+                "feibijiubi" => "Phi Bỉ",
+                _ => fallback,
+            };
+        }
+
+        return fallback;
+    }
+
+    private static readonly Dictionary<string, string> VietnameseStrings = new(StringComparer.Ordinal)
+    {
+        ["Tray_Mute"] = "Tắt tiếng",
+        ["Tray_StartWithWindows"] = "Khởi động cùng Windows",
+        ["Tray_FastingMode"] = "Chế độ nhịn ăn (không đói)",
+        ["Tray_InfiniteMode"] = "Chế độ vô hạn (ẩn thanh trạng thái)",
+        ["Tray_CoexistenceMode"] = "Song thú đồng hành (xuất hiện cả hai)",
+        ["Tray_SpeechBubbles"] = "Hiện bong bóng thoại",
+        ["Tray_QuietMode"] = "Chế độ yên tĩnh (chỉ đứng yên / ngủ)",
+        ["Tray_AllowMischief"] = "Cho phép Phi Bỉ nghịch ngợm",
+        ["Tray_MischiefStatus"] = "Trạng thái nghịch ngợm: {0}",
+        ["Tray_MischiefCharging"] = "Đang tích năng lượng",
+        ["Tray_MischiefClosed"] = "Đã tắt",
+        ["Tray_PrankOnce"] = "Nghịch ngợm một phát",
+        ["Tray_Tease"] = "Trêu chọc bé",
+        ["Tray_ReturnWindows"] = "Bắt Phi Bỉ trả lại cửa sổ",
+        ["Tray_CharacterSelect"] = "Chọn nhân vật",
+        ["Tray_BringHome"] = "Gọi bé về nhà",
+        ["Tray_PairMenu"] = "Diễn tập tương tác đôi",
+        ["Tray_PairCheek"] = "Phi Bỉ véo má Nhu Nhu",
+        ["Tray_PairSleep"] = "Tựa vào nhau ngủ",
+        ["Tray_PairFeed"] = "Móc đồ ăn trong mũ ra đút",
+        ["Tray_PairFollow"] = "Đeo bám như kẹo kéo",
+        ["Tray_PairNuzzle"] = "Đi ngang cọ cọ má",
+        ["Tray_PairBall"] = "Cùng nhau chơi bóng",
+        ["Tray_PairWatch"] = "Cùng hóng hớt",
+        ["Tray_PairDialogue"] = "Để hai bé trò chuyện",
+        ["Tray_Exit"] = "Thoát ứng dụng",
+        ["Tray_Language"] = "Ngôn ngữ / 语言",
+        ["Tray_LanguageVi"] = "Tiếng Việt",
+        ["Tray_LanguageZh"] = "中文",
+        ["Tray_SizeFormat"] = "Kích thước {0}  {1}%",
+        ["Tray_SizeBoth"] = "Cả hai bé",
+        ["Tray_TitleBase"] = "JiuNuo Thú Cưng Bàn Làm Việc",
+        ["Tray_TitleCoexist"] = "JiuNuo Thú Cưng · Song Thú Đồng Hành",
+        ["Tray_TitleBehavior"] = "JiuNuo Thú Cưng · Điều Khiển Hành Vi",
+        ["Tray_FeatureTestStatus"] = "Đang chuẩn bị kiểm thử tính năng…",
+        ["Tray_FeatureTestStop"] = "Dừng kiểm thử tính năng",
+        ["Tray_FeatureTestRetry"] = "Thử lại mục này",
+        ["Behavior_StatusDefault"] = "Điều khiển hành vi: Vui lòng chọn hành động",
+        ["Behavior_StatusFormat"] = "Điều khiển hành vi: {0}",
+        ["Behavior_Actions"] = "Kích hoạt hành động trực tiếp",
+        ["Behavior_Stop"] = "Dừng hành động hiện tại",
+        ["Behavior_Autonomy"] = "Tự do hoạt động thường ngày (bản điều khiển)",
+        ["Behavior_AutonomyTooltip"] = "Bật để cho phép bé tự đi dạo, nghỉ ngơi; chỉ áp dụng cho phiên điều khiển hiện tại.",
+        ["Behavior_QueueFormat"] = "Đóng menu rồi thực hiện: {0}",
+        ["Badge_Hunger"] = "Đói {0}",
+        ["Badge_Mischief"] = "Quậy",
+        ["Tooltip_FastingCoexist"] = "Nhu Nhu không còn đói nữa, đồng thời ẩn thanh trạng thái của cả hai; năng lượng nghịch của Phi Bỉ không đổi.",
+        ["Tooltip_FastingSolo"] = "Nhu Nhu không còn đói nữa, và ẩn thanh trạng thái đói.",
+        ["Mischief_Disabled"] = "Đã tắt quậy tự do",
+        ["Mischief_SessionLocked"] = "Đã tạm dừng (khóa màn hình)",
+        ["Mischief_Quiet"] = "Đã tạm dừng (chế độ yên tĩnh)",
+        ["Mischief_Sleeping"] = "Đã tạm dừng (đang ngủ)",
+        ["Mischief_Restoring"] = "Đang trả lại cửa sổ",
+        ["Mischief_Performing"] = "Đang quậy phá",
+        ["Mischief_Cooldown"] = "Hồi chiêu · {0} giây",
+        ["Mischief_Dragging"] = "Đang tích năng lượng · Chờ bạn buông tay",
+        ["Mischief_HatRecovery"] = "Chờ bé đội lại mũ",
+        ["Mischief_AssetsUnavailable"] = "Tài nguyên hành động chưa sẵn sàng",
+        ["Mischief_HatOccupiedFull"] = "Đầy năng lượng · Chờ mũ trống, trò nhỏ vẫn hoạt động",
+        ["Mischief_NoEligibleWindow"] = "Chờ cửa sổ phù hợp · Thử lại sau {0} giây",
+        ["Mischief_Enclosed"] = "Đang tích năng lượng · Chờ bé rời khỏi cửa sổ",
+        ["Mischief_PetBusy"] = "Chờ hành động hiện tại kết thúc",
+        ["Mischief_ChargingProgress"] = "Đang tích năng lượng · {0}/100",
+        ["Mischief_HatOccupied"] = " · Mũ đang bận",
+        ["App_InstanceRunningBehavior"] = "Ứng dụng thú cưng hoặc bản điều khiển hành vi đã đang chạy.\n\nVui lòng thoát thú cưng từ khay hệ thống trước khi mở lại.",
+        ["App_InstanceRunningTest"] = "Ứng dụng thú cưng hoặc chế độ kiểm thử tính năng đã đang chạy.\n\nVui lòng thoát thú cưng từ khay hệ thống trước.",
+        ["App_TitleBehavior"] = "JiuNuo Thú Cưng · Điều Khiển Hành Vi",
+        ["App_TitleTest"] = "JiuNuo Thú Cưng · Kiểm Thử Tính Năng Phi Bỉ",
+    };
+
+    private static readonly Dictionary<string, string> ChineseStrings = new(StringComparer.Ordinal)
+    {
+        ["Tray_Mute"] = "禁音",
+        ["Tray_StartWithWindows"] = "开机自启",
+        ["Tray_FastingMode"] = "禁食模式（永不饥饿）",
+        ["Tray_InfiniteMode"] = "无限模式（隐藏双方进度条）",
+        ["Tray_CoexistenceMode"] = "双宠共存",
+        ["Tray_SpeechBubbles"] = "显示头顶对话气泡",
+        ["Tray_QuietMode"] = "安静模式（只站立或睡觉）",
+        ["Tray_AllowMischief"] = "允许自主捣蛋",
+        ["Tray_MischiefStatus"] = "捣蛋状态：{0}",
+        ["Tray_MischiefCharging"] = "蓄力中",
+        ["Tray_MischiefClosed"] = "已关闭",
+        ["Tray_PrankOnce"] = "捣蛋一下",
+        ["Tray_Tease"] = "逗逗她",
+        ["Tray_ReturnWindows"] = "把窗口还回来",
+        ["Tray_CharacterSelect"] = "桌宠角色",
+        ["Tray_BringHome"] = "让她回家",
+        ["Tray_PairMenu"] = "双人互动演示",
+        ["Tray_PairCheek"] = "菲比揪糯糯的脸",
+        ["Tray_PairSleep"] = "靠在一起睡觉",
+        ["Tray_PairFeed"] = "从帽子里掏零食投喂",
+        ["Tray_PairFollow"] = "小跟屁虫",
+        ["Tray_PairNuzzle"] = "路过蹭一下",
+        ["Tray_PairBall"] = "一起玩小球",
+        ["Tray_PairWatch"] = "一起看热闹",
+        ["Tray_PairDialogue"] = "让她们聊两句",
+        ["Tray_Exit"] = "退出桌宠",
+        ["Tray_Language"] = "语言 / Language",
+        ["Tray_LanguageVi"] = "Tiếng Việt",
+        ["Tray_LanguageZh"] = "中文",
+        ["Tray_SizeFormat"] = "{0}大小  {1}%",
+        ["Tray_SizeBoth"] = "两人",
+        ["Tray_TitleBase"] = "啾糯桌宠",
+        ["Tray_TitleCoexist"] = "啾糯桌宠 · 双宠共存",
+        ["Tray_TitleBehavior"] = "啾糯桌宠 · 行为控制版",
+        ["Tray_FeatureTestStatus"] = "准备专属功能测试…",
+        ["Tray_FeatureTestStop"] = "停止专属功能测试",
+        ["Tray_FeatureTestRetry"] = "重试本项",
+        ["Behavior_StatusDefault"] = "行为控制版：请选择行为",
+        ["Behavior_StatusFormat"] = "行为控制版：{0}",
+        ["Behavior_Actions"] = "直接触发行为",
+        ["Behavior_Stop"] = "停止当前行为",
+        ["Behavior_Autonomy"] = "自动日常活动（行为控制版）",
+        ["Behavior_AutonomyTooltip"] = "开启后允许自行散步、休息等日常活动；此选项仅用于当前行为控制会话。",
+        ["Behavior_QueueFormat"] = "关菜单后执行：{0}",
+        ["Badge_Hunger"] = "饥饿 {0}",
+        ["Badge_Mischief"] = "捣蛋",
+        ["Tooltip_FastingCoexist"] = "糯糯不再饥饿，同时隐藏双方进度条；菲比的捣蛋蓄力不变。",
+        ["Tooltip_FastingSolo"] = "糯糯不再饥饿，并隐藏饥饿条。",
+        ["Mischief_Disabled"] = "自主捣蛋已关闭",
+        ["Mischief_SessionLocked"] = "已暂停（锁屏）",
+        ["Mischief_Quiet"] = "已暂停（安静模式）",
+        ["Mischief_Sleeping"] = "已暂停（睡觉）",
+        ["Mischief_Restoring"] = "归还窗口中",
+        ["Mischief_Performing"] = "捣蛋中",
+        ["Mischief_Cooldown"] = "冷却中 · {0} 秒",
+        ["Mischief_Dragging"] = "蓄力中 · 等你松手",
+        ["Mischief_HatRecovery"] = "等她戴好帽子",
+        ["Mischief_AssetsUnavailable"] = "动作素材不可用（见日志）",
+        ["Mischief_HatOccupiedFull"] = "已满 · 等帽子腾空，小捣蛋照常",
+        ["Mischief_NoEligibleWindow"] = "等待合适窗口 · {0} 秒后重试",
+        ["Mischief_Enclosed"] = "蓄力中 · 等她离开窗口内部",
+        ["Mischief_PetBusy"] = "等当前动作结束",
+        ["Mischief_ChargingProgress"] = "蓄力中 · {0}/100",
+        ["Mischief_HatOccupied"] = " · 帽子已占用",
+        ["App_InstanceRunningBehavior"] = "桌宠或行为控制版已经在运行。\n\n请先从托盘退出当前桌宠，再打开需要的版本。",
+        ["App_InstanceRunningTest"] = "桌宠或专属功能测试已经在运行。\n\n请先从托盘退出当前桌宠，再打开“菲比啾比专属功能测试”。",
+        ["App_TitleBehavior"] = "啾糯桌宠 · 行为控制版",
+        ["App_TitleTest"] = "啾糯桌宠 · 菲比啾比专属功能测试",
+    };
+}

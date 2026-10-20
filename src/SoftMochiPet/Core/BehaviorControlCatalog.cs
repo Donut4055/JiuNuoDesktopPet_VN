@@ -87,6 +87,56 @@ public sealed record BehaviorControlItem(
             : character.UsesMischief ? BehaviorControlCharacters.FeibiJiubi : BehaviorControlCharacters.None;
         return (Characters & flag) != 0;
     }
+
+    public string LocalizedGroup => LocalizationManager.IsVietnamese ? Group switch
+    {
+        "行为控制" => "Điều khiển hành vi",
+        "站姿与情绪" => "Tư thế & Cảm xúc",
+        "地面移动" => "Di chuyển mặt đất",
+        "攀爬与高处" => "Leo trèo & Trên cao",
+        "休息与睡眠" => "Nghỉ ngơi & Đi ngủ",
+        "物理抛落" => "Rơi tự do & Ném",
+        "进食互动" => "Ăn uống tương tác",
+        "窗口捣蛋" => "Nghịch ngợm cửa sổ",
+        "帽子动作" => "Hành động với mũ",
+        _ => Group,
+    } : Group;
+
+    public string LocalizedTitle => LocalizationManager.IsVietnamese ? Action switch
+    {
+        BehaviorControlAction.Stop => "Dừng hành động hiện tại",
+        BehaviorControlAction.Stand => "Đứng yên",
+        BehaviorControlAction.Curious => "Tò mò ngó nghiêng",
+        BehaviorControlAction.Walk => "Đi bộ dạo mát",
+        BehaviorControlAction.Run => "Chạy nhanh",
+        BehaviorControlAction.Patrol => "Đi tuần tra",
+        BehaviorControlAction.Hop => "Nhảy chân sáo",
+        BehaviorControlAction.Climb => "Trèo lên cửa sổ",
+        BehaviorControlAction.SlideDown => "Trượt xuống viền cửa sổ",
+        BehaviorControlAction.JumpDown => "Nhảy xuống từ trên cao",
+        BehaviorControlAction.Roll => "Lăn qua lăn lại ăn vạ",
+        BehaviorControlAction.Sleep => "Đi ngủ khò khò",
+        BehaviorControlAction.Wake => "Đánh thức dậy",
+        BehaviorControlAction.FreeFall => "Rơi tự do",
+        BehaviorControlAction.Toss => "Hất tung lên trời",
+        BehaviorControlAction.Hungry => "Đói bụng kêu réo",
+        BehaviorControlAction.LickIcon => "Liếm thử icon",
+        BehaviorControlAction.EatIcon => "Chén sạch icon",
+        BehaviorControlAction.Satisfied => "No nê xoa bụng",
+        BehaviorControlAction.Kick => "Đá tung cửa sổ",
+        BehaviorControlAction.Punch => "Đấm cửa sổ",
+        BehaviorControlAction.Charge => "Húc đầu vào cửa sổ",
+        BehaviorControlAction.HatStore => "Hút cửa sổ vào mũ",
+        BehaviorControlAction.Shatter => "Đá vỡ vụn cửa sổ",
+        BehaviorControlAction.Tear => "Xé toạc cửa sổ làm đôi",
+        BehaviorControlAction.Tease => "Chọc ghẹo Phi Bỉ",
+        BehaviorControlAction.FillMischief => "Nạp đầy năng lượng nghịch ngợm",
+        BehaviorControlAction.ReturnWindows => "Bắt trả lại cửa sổ",
+        BehaviorControlAction.ThrowAndRecoverHat => "Ném mũ rồi bắt lại",
+        _ => Title,
+    } : Title;
+
+    public string LocalizedDescription => Description;
 }
 
 /// <summary>

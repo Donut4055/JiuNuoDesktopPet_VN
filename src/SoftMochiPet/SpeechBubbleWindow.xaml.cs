@@ -57,7 +57,7 @@ public partial class SpeechBubbleWindow : Window
         var petHeight = petBounds.Bottom - petBounds.Top;
         var left = Math.Clamp(petBounds.Left + petWidth / 2 - width / 2,
             workArea.Left, Math.Max(workArea.Left, workArea.Right - width));
-        var top = petBounds.Top + (int)Math.Round(petHeight * .16) - height;
+        var top = petBounds.Top - height - (int)Math.Round(6 * scale);
         if (top < workArea.Top)
         {
             top = Math.Clamp(petBounds.Top + petHeight / 5,
