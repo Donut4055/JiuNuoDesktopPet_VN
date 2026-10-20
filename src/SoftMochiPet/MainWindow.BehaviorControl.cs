@@ -33,7 +33,7 @@ public partial class MainWindow
     {
         if (!IsBehaviorControlMode || _isClosing) return;
         _pendingBehavior = (action, _character.Id);
-        SetBehaviorControlStatus("关菜单后执行：" + BehaviorControlCatalog.Get(action).Title);
+        SetBehaviorControlStatus(LocalizationManager.Get("Behavior_QueueFormat", BehaviorControlCatalog.Get(action).LocalizedTitle));
     }
 
     private void SetBehaviorControlStatus(string text)

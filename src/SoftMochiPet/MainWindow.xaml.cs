@@ -179,7 +179,9 @@ public partial class MainWindow : Window
                 Path.Combine(AppContext.BaseDirectory, _character.RuntimeRelativeDirectory), _character);
         }
 
-        Title = IsBehaviorControlMode ? $"啾糯桌宠 · 行为控制版 · {_character.DisplayName}" : $"啾糯桌宠 · {_character.DisplayName}";
+        Title = IsBehaviorControlMode
+            ? $"{LocalizationManager.Get("Tray_TitleBehavior")} · {LocalizationManager.GetCharacterName(_character.Id, _character.DisplayName)}"
+            : $"{LocalizationManager.Get("Tray_TitleBase")} · {LocalizationManager.GetCharacterName(_character.Id, _character.DisplayName)}";
         _lifeStateStore = CreateLifeStateStore(_character);
         _lifeState = _lifeStateStore.Load();
         NormalizeCharacterNeeds();
@@ -419,7 +421,9 @@ public partial class MainWindow : Window
         _lifeSaveRemaining = 60;
         GroundShadow.Width = 202;
         _lastTracedState = null;
-        Title = IsBehaviorControlMode ? $"啾糯桌宠 · 行为控制版 · {_character.DisplayName}" : $"啾糯桌宠 · {_character.DisplayName}";
+        Title = IsBehaviorControlMode
+            ? $"{LocalizationManager.Get("Tray_TitleBehavior")} · {LocalizationManager.GetCharacterName(_character.Id, _character.DisplayName)}"
+            : $"{LocalizationManager.Get("Tray_TitleBase")} · {LocalizationManager.GetCharacterName(_character.Id, _character.DisplayName)}";
         _settings.CharacterId = _character.Id;
         try
         {
@@ -3641,6 +3645,7 @@ public partial class MainWindow : Window
 
         HungerBadge.Visibility = hungerVisibility;
         MischiefBadge.Visibility = mischiefVisibility;
+        MischiefText.Text = LocalizationManager.Get("Badge_Mischief");
         DiagnosticsLog.WriteEvent("ProgressDisplayVisibilityChanged",
             ("Character", _character.Id), ("Visible", visible),
             ("FastingMode", _settings.FastingMode), ("InfiniteMode", _settings.InfiniteMode),
@@ -3665,7 +3670,7 @@ public partial class MainWindow : Window
         _nextHungerUiUpdate = now + 0.25;
         var hunger = Math.Clamp(_lifeState.Hunger, 0, 100);
         var rounded = (int)Math.Round(hunger);
-        HungerText.Text = $"饥饿 {rounded}";
+        HungerText.Text = LocalizationManager.Get("Badge_Hunger", rounded);
         HungerBar.Value = hunger;
         var band = hunger >= 80 ? 2 : hunger >= 55 ? 1 : 0;
         if (band != _lastHungerBand)
@@ -4083,6 +4088,8 @@ public partial class MainWindow : Window
         _settingsStore.Save(_settings);
         LocalizationManager.SetLanguage(language);
         _trayIcon?.RefreshLanguage();
+        UpdateHungerDisplay(force: true);
+        MischiefText.Text = LocalizationManager.Get("Badge_Mischief");
     }
 
     private void ToggleQuietMode(bool enabled)

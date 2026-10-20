@@ -532,8 +532,8 @@ public sealed class TrayIconService : IDisposable
         if (_pairDialogueItem is not null) _pairDialogueItem.Enabled = _coexisting && _speechBubbles.Checked && !_quietMode.Checked;
         _fastingMode.Visible = _coexisting || _character.SupportsFood;
         _fastingMode.ToolTipText = _coexisting
-            ? "糯糯不再饥饿，同时隐藏双方进度条；菲比的捣蛋蓄力不变。"
-            : "糯糯不再饥饿，并隐藏饥饿条。";
+            ? LocalizationManager.Get("Tooltip_FastingCoexist")
+            : LocalizationManager.Get("Tooltip_FastingSolo");
         _allowMischief.Visible = _coexisting || _character.UsesMischief;
         _mischiefStatus.Visible = _coexisting || _character.UsesMischief;
         _prankOnce.Visible = (_coexisting || _character.UsesMischief) && _behaviorControlMenu is null;
