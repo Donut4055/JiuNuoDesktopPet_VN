@@ -28,8 +28,42 @@ internal static class FeibiJiubiDialogue
             [DialogueCue.VoiceDisabled] = ["嘘，悄悄的。", "蹑手蹑脚走。", "啾……小小声。", "偷偷陪着你。"],
         };
 
-    private static readonly IReadOnlyList<string> PlayLines = ["嘿，玩什么呀？", "陪我蹦一下！", "我有小主意！", "帽子藏好啦。"];
+    private static readonly IReadOnlyDictionary<DialogueCue, IReadOnlyList<string>> VietnameseLines =
+        new Dictionary<DialogueCue, IReadOnlyList<string>>
+        {
+            [DialogueCue.Startup] = ["Chiu, bạn tới rồi hả!", "Nè, chơi với tui đi!", "Hôm nay đi đâu quậy ta?", "Hehe, gặp lại gòi nha~"],
+            [DialogueCue.IconsHidden] = ["Ủa, trốn hết trơn gòi?", "Chơi trốn tìm hả?", "Ra đây chơi nè!", "Rõ ràng tui thấy mà ta!"],
+            [DialogueCue.PlatformLaunch] = ["Bay lên nào vù vù!", "Cái mũ giữ chặt tui coi!", "Oa, chân nhẹ tênh à!", "Bay cao hơn nữa được hông?"],
+            [DialogueCue.HardLanding] = ["Ái chà, tưng một cái!", "Giày chạm đất trước rùi!", "Hê, vẫn còn nhún nhảy được!", "Chiu, hông có bị bẹp dí đâu nha!"],
+            [DialogueCue.ConfidentClimb] = ["Hehe, xem tui trèo nè!", "Trên đó có gì vui hông ta?", "Chân tui khỏe lắm á!", "Tiến lên tiến lên nào!"],
+            [DialogueCue.CarefulClimb] = ["Giày ơi đừng có trượt nha.", "Vươn cao thêm tí nữa!", "Tui với tới hông ta?", "Mũ đừng che mắt tui chứ!"],
+            [DialogueCue.ClimbSlip] = ["Ái cha, trượt tay gòi!", "Còn xíu xiu nữa thui mà!", "Tường trơn như bôi mỡ á.", "Hổng chịu đâu, leo lại!"],
+            [DialogueCue.ClimbSuccess] = ["Nhìn nè, tui lên tới rùi!", "Hehe, cao ghê chưa!", "Gió thổi bay cả mũ!", "Bên dưới bé tí tẹo à!"],
+            [DialogueCue.Exploration] = ["Bên kia sáng loáng kìa!", "Hê, qua nghía thử coi!", "Còn chỗ nào chưa quậy hông?", "Chân ơi dẫn đường nà!"],
+            [DialogueCue.Sleep] = ["Mí mắt nặng trĩu gòi...", "Chơi thêm... một xíu nữa thui...", "Chiu, cho tui mượn vai dựa xíu...", "Trong mơ cũng có bạn hông ta?"],
+            [DialogueCue.WakeNormally] = ["Hê, lại gặp nhau rùi!", "Trong mơ tui chạy xa xôi lắm á.", "Ngủ dậy tóc chổng ngược luôn!", "Chiu, lại muốn ra ngoài chơi!"],
+            [DialogueCue.PickedUp] = ["Được nhấc lên cao kìa!", "Chiu, bế tui đi đâu dợ?", "Chân hổng với tới đất rùi.", "Đung đưa qua lại vui ghê!"],
+            [DialogueCue.Released] = ["Oa, sàn nhà tới rùi!", "Chân chạm đất cái cộp!", "Chờ cái mũ của tui với!", "Chiu, nhẹ tay thôi nha!"],
+            [DialogueCue.DragThrow] = ["Vèo——nhanh quá trời!", "Cái mũ đuổi theo hổng kịp luôn!", "Oa gió rít vù vù bên tai!", "Cho tui bay thêm xíu nữa!"],
+            [DialogueCue.TerrainHop] = ["Nhảy cao thêm xíu nào!", "Hê, đôi chân đàn hồi nhún nhún!", "Chiu, với tới liền á!", "Vèo một cái qua luôn!"],
+            [DialogueCue.TerrainJumpDown] = ["Bên dưới cũng muốn ghé chơi!", "Hê, hứng cái mũ giùm tui nha!", "Nhảy tưng tưng xuống nè!", "Chiu, chỗ đó vui lắm á!"],
+            [DialogueCue.EdgeSlide] = ["Trượt cái vèo, trơn ghê!", "Tay bám cho chắc coi!", "Giày cọ cọ nhột quá trời.", "Trượt thêm một đoạn nữa đi!"],
+            [DialogueCue.WindowMaximized] = ["Oa, đè bẹp tui gòi!", "Cửa sổ phình to nhanh dữ dội!", "Hú hồn bay cả mũ!", "Sao tự nhiên tui bị bay lên dợ!"],
+            [DialogueCue.Home] = ["Tổ ấm êm ái quá chừng!", "Hê, vẫn là chỗ này tuyệt nhất!", "Về ngắm bạn nè!", "Mũ ơi cũng nghỉ ngơi xíu đi."],
+            [DialogueCue.VoiceEnabled] = ["Chiu, tui ở đây nè!", "Hê, nhìn tui coi!", "Hé lô người bạn nhỏ!", "Nhớ tui hông dợ ta?"],
+            [DialogueCue.VoiceDisabled] = ["Suỵt, bí mật nha.", "Đi rón rén từng bước một.", "Chiu... nói nhỏ thui.", "Lén lút đồng hành cùng bạn nè."],
+        };
 
-    public static IReadOnlyList<string> GetLines(DialogueCue cue) =>
-        Lines.TryGetValue(cue, out var lines) ? lines : PlayLines;
+    private static readonly IReadOnlyList<string> PlayLines = ["嘿，玩什么呀？", "陪我蹦一下！", "我有小主意！", "帽子藏好啦。"];
+    private static readonly IReadOnlyList<string> VietnamesePlayLines = ["Hê, chơi trò gì ta?", "Nhún nhảy với tui một cái nào!", "Tui có ý tưởng này hay lắm!", "Giấu cái mũ đi gòi nha."];
+
+    public static IReadOnlyList<string> GetLines(DialogueCue cue)
+    {
+        if (LocalizationManager.IsVietnamese)
+        {
+            return VietnameseLines.TryGetValue(cue, out var viLines) ? viLines : VietnamesePlayLines;
+        }
+
+        return Lines.TryGetValue(cue, out var lines) ? lines : PlayLines;
+    }
 }

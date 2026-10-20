@@ -154,6 +154,7 @@ public partial class MainWindow : Window
         _behaviorSession = behaviorControl ? BehaviorControlSession.Create() : null;
         _settingsStore = primaryWindow?._settingsStore ?? _behaviorSession?.SettingsStore ?? _featureSession?.SettingsStore ?? new SettingsStore();
         _settings = primaryWindow?._settings ?? _behaviorSession?.Settings ?? _settingsStore.Load();
+        LocalizationManager.SetLanguage(_settings.Language);
         _character = companionCharacter ?? PetCharacterProfile.Get(_settings.CharacterId);
         var runtimeDirectory = Path.Combine(AppContext.BaseDirectory, _character.RuntimeRelativeDirectory);
         if (!HasCharacterAssets(runtimeDirectory, _character) && _character != PetCharacterProfile.Nuonuo)
@@ -225,6 +226,7 @@ public partial class MainWindow : Window
             _trayIcon.FastingModeChanged += enabled => Dispatcher.Invoke(() => ToggleFastingMode(enabled));
             _trayIcon.InfiniteModeChanged += enabled => Dispatcher.Invoke(() => ToggleInfiniteMode(enabled));
             _trayIcon.QuietModeChanged += enabled => Dispatcher.Invoke(() => ApplyToBoth(pet => pet.ToggleQuietMode(enabled)));
+            _trayIcon.LanguageRequested += lang => Dispatcher.Invoke(() => SetLanguagePreference(lang));
         }
         InitializeMischief();
         InitializeBehaviorControl();
@@ -4073,6 +4075,14 @@ public partial class MainWindow : Window
             "FastingModeChanged",
             ("Enabled", enabled),
             ("CoexistenceMode", _settings.CoexistenceMode));
+    }
+
+    private void SetLanguagePreference(string language)
+    {
+        _settings.Language = language;
+        _settingsStore.Save(_settings);
+        LocalizationManager.SetLanguage(language);
+        _trayIcon?.RefreshLanguage();
     }
 
     private void ToggleQuietMode(bool enabled)

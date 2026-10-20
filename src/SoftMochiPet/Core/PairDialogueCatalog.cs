@@ -4,7 +4,7 @@ public readonly record struct PairDialogue(bool FeibiFirst, string First, string
 
 public static class PairDialogueCatalog
 {
-    public static IReadOnlyList<PairDialogue> Exchanges { get; } =
+    private static readonly IReadOnlyList<PairDialogue> ChineseExchanges =
     [
         new(true, "糯糯，猜我帽里有啥？", "蛋糕……？"),
         new(true, "去那边看看嘛！", "等我一下呀。"),
@@ -17,4 +17,21 @@ public static class PairDialogueCatalog
         new(false, "今天有蛋糕吗？", "我找找看！"),
         new(false, "不要捣蛋啦。", "就一下下嘛！"),
     ];
+
+    private static readonly IReadOnlyList<PairDialogue> VietnameseExchanges =
+    [
+        new(true, "Nhu Nhu, đoán xem trong mũ có gì nè?", "Bánh kem hả...?"),
+        new(true, "Qua đằng kia xem đi mà!", "Chờ tui một chút coi."),
+        new(true, "Tui nhảy có cao hông nè?", "Cao ơi là cao luôn á."),
+        new(true, "Trong mũ có quà bất ngờ nè!", "Ăn được hông dợ?"),
+        new(true, "Nhu Nhu ơi, dậy đi mà~", "Cho ngủ thêm xíu nữa..."),
+        new(false, "Bồ lại cười cái gì đó?", "Hehe, bí mật!"),
+        new(false, "Cho tui mượn mũ nằm xíu đi.", "Được chứ, chui vô nè!"),
+        new(false, "Bồ chạy chậm lại xíu coi.", "Thế thì dắt tay tui đi!"),
+        new(false, "Hôm nay có bánh kem hông?", "Để tui tìm thử xem!"),
+        new(false, "Đừng có nghịch ngợm nữa mà.", "Nghịch một xíu xiu thui!"),
+    ];
+
+    public static IReadOnlyList<PairDialogue> Exchanges =>
+        LocalizationManager.IsVietnamese ? VietnameseExchanges : ChineseExchanges;
 }

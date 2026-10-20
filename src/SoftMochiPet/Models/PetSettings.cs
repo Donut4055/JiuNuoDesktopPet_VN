@@ -25,6 +25,7 @@ public sealed class PetSettings
     public bool AllowMischief { get; set; } = true;
     public double VoiceVolume { get; set; } = 0.72;
     public double PetSize { get; set; } = PetSizePolicy.DefaultSize;
+    public string Language { get; set; } = LocalizationManager.Vietnamese;
     public List<string> WatchedFolders { get; set; } = [];
 }
 

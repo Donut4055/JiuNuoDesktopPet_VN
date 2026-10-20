@@ -41,12 +41,33 @@ public sealed class MischiefDialogueSelector
             [MischiefCue.NoTarget] = ["玩具躲哪啦？", "等会儿再玩！", "先蹦两下！", "那我歇一下。"],
         };
 
+    private static readonly IReadOnlyDictionary<MischiefCue, IReadOnlyList<string>> VietnameseLines =
+        new Dictionary<MischiefCue, IReadOnlyList<string>>
+        {
+            [MischiefCue.Teased] = ["Hehe, chọc nữa đi!", "Nhột quá à!", "Lại ghẹo tui gòi!", "Chiu! Bắt quả tang nha!"],
+            [MischiefCue.Sneak] = ["Suỵt——", "Hổng có thấy tui đâu nha.", "Rón rén tới gần nè.", "Hehe, chờ đó coi!"],
+            [MischiefCue.Kick] = ["Ăn một cú sút nè!", "Hây a!", "Bay đi nha cưng!", "Đá nhẹ một cái thui!"],
+            [MischiefCue.Punch] = ["Bốp!", "Đấm một phát nè!", "Hây!", "Đỡ chiêu nè!"],
+            [MischiefCue.Charge] = ["Tránh đường tránh đường mau!", "Xông lên nào——!", "Tui tới đây nè!", "Mũ ơi bám cho chặt!"],
+            [MischiefCue.Recoil] = ["Ái cha cha.", "Đập mông xuống đất rùi!", "Coi như hổng thấy gì đi nha.", "Tui đứng vững lại gòi nè!"],
+            [MischiefCue.HideWindow] = ["Mượn giấu xíu nha!", "Mũ này chứa vừa in à!", "Hehe, giờ là của tui!", "Hổng được nhìn lén đâu á!"],
+            [MischiefCue.HoldingWindow] = ["Đâu có giấu gì đâu nè.", "Mũ ơi ngoan nào!", "Ủa? Cửa sổ nào dợ?", "Hehe..."],
+            [MischiefCue.ReturnWindow] = ["Trả lại cho bạn nè!", "Ta-da——!", "Nó ở đây nè!", "Được gòi, hổng giấu nữa đâu."],
+            [MischiefCue.Burst] = ["Hết chịu nổi gòi!", "Mũ ơi nghỉ xíu nha!", "Lần này tui chơi thật á!", "Hehe, mở to mắt ra nhìn nè!"],
+            [MischiefCue.Smash] = ["Bay tung tóe gòi——!", "Chiu! Cú đá siêu cấp!", "Oa, vỡ vụn rùi!", "Tui đỉnh quá trời quá đất!"],
+            [MischiefCue.Tear] = ["Hây——dô!", "Sao mà dai nhách vậy nè!", "Kéo mạnh thêm tí nữa!", "Ái chà, dính chặt tay gòi!"],
+            [MischiefCue.Finished] = ["Vui quá xá!", "Mũ bay về lại gòi nè!", "Hehe, hổng có sao hết trơn.", "Tui ngoan lắm á nha!"],
+            [MischiefCue.Interrupted] = ["Bị bắt quả tang gòi!", "Dạ dạ biết gòi mà.", "Tui buông tay ra liền nè.", "Lần sau lại chơi tiếp nha."],
+            [MischiefCue.NoTarget] = ["Đồ chơi trốn đâu mất tiêu gòi?", "Lát nữa quậy tiếp!", "Nhún nhảy đôi ba cái đã!", "Thế thì tui nghỉ ngơi xíu."],
+        };
+
     private readonly Random _random;
     private readonly Dictionary<MischiefCue, int> _previous = [];
 
     public MischiefDialogueSelector(Random? random = null) => _random = random ?? Random.Shared;
 
-    public static IReadOnlyList<string> GetLines(MischiefCue cue) => Lines[cue];
+    public static IReadOnlyList<string> GetLines(MischiefCue cue) =>
+        LocalizationManager.IsVietnamese && VietnameseLines.TryGetValue(cue, out var viLines) ? viLines : Lines[cue];
 
     public string Choose(MischiefCue cue)
     {
